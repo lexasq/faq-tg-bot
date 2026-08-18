@@ -1,0 +1,12 @@
+# Regression corpus. Every false positive a neighbour reports becomes a
+# new `expect: null` line here.
+# entry ids are slugify() of the fixture titles in tests/test_matching.py:
+# "Рахунок ДТЕК" -> rakhunok_dtek, "Контакт голови спільноти" -> kontakt_holovy_spilnoty
+- text: "Люди, а який зараз рахунок у ДТЕК?"
+  expect: rakhunok_dtek
+- text: "куди платити за світло"
+  expect: rakhunok_dtek
+- text: "хто у нас голова спільноти"
+  expect: kontakt_holovy_spilnoty
+- text: "дтек знову світло вимкнув"
+  expect: null

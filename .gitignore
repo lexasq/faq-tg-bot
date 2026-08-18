@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.egg-info/
+.pytest_cache/
+secrets/
+*.json.key
+faq_export.md
+faq_export.csv
+backups/
+
+# Local working docs — may contain real personal/organizational data
+# (IBANs, phone numbers, emails) or are one-off planning/reference
+# material, not project source. See tests/fixtures/faq_example.md for a
+# safe, generic stand-in used by the test suite.
+osbb-faq-bot-plan.md
+osbb-seed-entries.md
+normalized_entries.md
+
+# Working directory the Firestore emulator fixture creates on the fly
+# (tests/test_firestore_emulator.py) — firebase.json + emulator logs.
+tests/.firestore_emulator_workdir/
