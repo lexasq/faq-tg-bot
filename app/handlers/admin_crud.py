@@ -261,6 +261,87 @@ async def reset_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     return ConversationHandler.END
 
 
+# --- /admins (list: any admin; add/remove: owner only) --------------------
+
+
+@admin_only
+async def cmd_admins(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    services = get_services(context.bot_data)
+    args = context.args or []
+
+    if not args:
+        await _admins_list(update, services)
+        return
+
+    action = args[0].lower()
+    if action == "add":
+        await _admins_add(update, services, args[1:])
+    elif action == "remove":
+        await _admins_remove(update, services, args[1:])
+    else:
+        await update.message.reply_text(texts.ADMINS_USAGE)
+
+
+async def _admins_list(update: Update, services: Services) -> None:
+    admins = sorted(await services.admin_repo.list(), key=lambda a: (a.role != "owner", a.name))
+    lines = [texts.ADMINS_HEADER.format(count=len(admins))]
+    for a in admins:
+        icon = "👑" if a.role == "owner" else "🔧"
+        lines.append(texts.ADMINS_ITEM.format(icon=icon, name=a.name, user_id=a.user_id, role=a.role))
+    await update.message.reply_text("\n".join(lines))
+
+
+async def _admins_add(update: Update, services: Services, args: list[str]) -> None:
+    if not await services.admin_repo.is_owner(update.effective_user.id):
+        await update.message.reply_text(texts.ADMINS_NOT_OWNER)
+        return
+    if len(args) < 2:
+        await update.message.reply_text(texts.ADMIN_ADD_USAGE)
+        return
+    try:
+        user_id = int(args[0])
+    except ValueError:
+        await update.message.reply_text(texts.ADMIN_ID_NOT_A_NUMBER)
+        return
+    name = " ".join(args[1:])
+
+    existing = await services.admin_repo.get(user_id)
+    if existing is not None:
+        await update.message.reply_text(texts.ADMIN_ALREADY_EXISTS.format(name=existing.name))
+        return
+
+    await services.admin_repo.add(user_id, name=name, role="editor", added_by=update.effective_user.id)
+    await update.message.reply_text(texts.ADMIN_ADDED.format(name=name, user_id=user_id))
+
+
+async def _admins_remove(update: Update, services: Services, args: list[str]) -> None:
+    if not await services.admin_repo.is_owner(update.effective_user.id):
+        await update.message.reply_text(texts.ADMINS_NOT_OWNER)
+        return
+    if not args:
+        await update.message.reply_text(texts.ADMIN_REMOVE_USAGE)
+        return
+    try:
+        user_id = int(args[0])
+    except ValueError:
+        await update.message.reply_text(texts.ADMIN_ID_NOT_A_NUMBER)
+        return
+
+    target = await services.admin_repo.get(user_id)
+    if target is None:
+        await update.message.reply_text(texts.ADMIN_NOT_FOUND)
+        return
+
+    if target.role == "owner":
+        owners = [a for a in await services.admin_repo.list() if a.role == "owner"]
+        if len(owners) <= 1:
+            await update.message.reply_text(texts.ADMIN_CANT_REMOVE_LAST_OWNER)
+            return
+
+    await services.admin_repo.remove(user_id)
+    await update.message.reply_text(texts.ADMIN_REMOVED.format(name=target.name, user_id=user_id))
+
+
 # --- /add conversation ------------------------------------------------------
 
 
@@ -916,6 +997,7 @@ HANDLERS = [
     admin_conversation,
     CommandHandler("list", cmd_list),
     CommandHandler("find", cmd_find),
+    CommandHandler("admins", cmd_admins),
     CallbackQueryHandler(cb_list_page, pattern=r"^al:"),
     CallbackQueryHandler(cb_open_card, pattern=r"^ec:[0-9a-f]+$"),
     CallbackQueryHandler(cb_toggle_enabled, pattern=r"^ec:tog:"),

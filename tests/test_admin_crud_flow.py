@@ -138,11 +138,10 @@ async def test_help_is_ignored_in_groups(rig):
 
 
 async def test_help_menu_only_lists_commands_that_actually_exist():
-    # regression: START_ADMIN_MENU used to advertise /settings and
-    # /admins, neither of which was ever implemented
+    # regression: START_ADMIN_MENU used to advertise /settings, which was
+    # never implemented
     assert "/settings" not in admin_crud.texts.START_ADMIN_MENU
-    assert "/admins" not in admin_crud.texts.START_ADMIN_MENU
-    for cmd in ("/add", "/list", "/find", "/import", "/export", "/review", "/stats", "/test", "/faq", "/health", "/cancel", "/help", "/reset"):
+    for cmd in ("/add", "/list", "/find", "/import", "/export", "/review", "/stats", "/test", "/faq", "/admins", "/health", "/cancel", "/help", "/reset"):
         assert cmd in admin_crud.texts.START_ADMIN_MENU, f"{cmd} missing from help text"
 
 

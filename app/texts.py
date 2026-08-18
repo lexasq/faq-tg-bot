@@ -8,8 +8,8 @@ SESSION_TIMED_OUT = "⏳ Час сесії вичерпано. Почніть с
 
 # --- /start, /help ---
 START_NON_ADMIN = "Я FAQ-бот. Питання можна переглянути тут: /faq"
-# Kept in sync by hand with app/handlers/*.HANDLERS — /settings and
-# /admins used to be listed here despite never being implemented.
+# Kept in sync by hand with app/handlers/*.HANDLERS — /settings used to be
+# listed here despite never being implemented.
 START_ADMIN_MENU = (
     "Вітаю! Ви адміністратор. Доступні команди:\n\n"
     "Записи:\n"
@@ -24,6 +24,7 @@ START_ADMIN_MENU = (
     "/test <текст> — перевірити, як бот відповість\n\n"
     "Інше:\n"
     "/faq — переглянути список питань як бачать користувачі\n"
+    "/admins — список адмінів (додавання/видалення — лише власник)\n"
     "/health — перевірка стану бота\n"
     "/cancel — скасувати поточну дію\n"
     "/help — ця довідка\n\n"
@@ -40,6 +41,25 @@ RESET_WARNING = (
 RESET_WRONG_CONFIRMATION = "Не підтверджено. Надішліть саме слово {word}, або /cancel."
 RESET_DONE = "🗑 Видалено {count} записів. FAQ порожній."
 RESET_NOT_OWNER = "Ця команда доступна лише власнику."
+
+# --- /admins (list: any admin; add/remove: owner only) ---
+ADMINS_HEADER = "👥 Адміни ({count}):"
+ADMINS_ITEM = "{icon} {name} — {user_id} ({role})"
+ADMINS_USAGE = (
+    "Використання:\n"
+    "/admins — список адмінів\n"
+    "/admins add <user_id> <ім'я> — додати адміна\n"
+    "/admins remove <user_id> — видалити адміна"
+)
+ADMINS_NOT_OWNER = "Керувати адмінами може лише власник."
+ADMIN_ADD_USAGE = "Використання: /admins add <user_id> <ім'я>"
+ADMIN_ID_NOT_A_NUMBER = "user_id має бути числом."
+ADMIN_ALREADY_EXISTS = "Цей user_id вже є адміном: {name}."
+ADMIN_ADDED = "✅ Додано адміна: {name} ({user_id})."
+ADMIN_REMOVE_USAGE = "Використання: /admins remove <user_id>"
+ADMIN_NOT_FOUND = "Адміна з таким user_id не знайдено."
+ADMIN_CANT_REMOVE_LAST_OWNER = "Не можна видалити останнього власника."
+ADMIN_REMOVED = "🗑 Видалено адміна: {name} ({user_id})."
 
 # --- /add conversation ---
 ADD_ASK_TITLE = "Введіть заголовок запису (коротка назва, як він буде показаний у меню):"
