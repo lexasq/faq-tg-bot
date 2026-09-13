@@ -4,7 +4,9 @@ import base64
 import os
 import subprocess
 import tempfile
+import threading
 from datetime import time as dt_time
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from telegram import Update
 from telegram.ext import AIORateLimiter, Application, ApplicationBuilder, CommandHandler, ContextTypes, TypeHandler
@@ -22,6 +24,31 @@ from app.services import Services
 logger = get_logger(__name__)
 
 LIVENESS_INTERVAL_SECONDS = 30
+
+# The bot itself only long-polls Telegram and never opens a port, but platforms
+# like DigitalOcean App Platform run an HTTP readiness/liveness probe against
+# $PORT (default 8080) regardless of workload type. This stub server exists
+# only to satisfy that probe.
+HEALTH_CHECK_PORT = int(os.environ.get("PORT", "8080"))
+
+
+class _HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"ok")
+
+    def log_message(self, format: str, *args: object) -> None:
+        pass
+
+
+def start_health_check_server(port: int) -> HTTPServer:
+    server = HTTPServer(("0.0.0.0", port), _HealthCheckHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    logger.info("health_check_server_started", port=port)
+    return server
 
 
 def get_git_sha() -> str:
@@ -133,6 +160,8 @@ def main() -> None:
 
     configure_logging(settings.LOG_LEVEL, settings.ENV)
     logger.info("starting", env=settings.ENV, git_sha=get_git_sha())
+
+    start_health_check_server(HEALTH_CHECK_PORT)
 
     application = build_application(settings)
     # run_polling installs handlers for SIGINT/SIGTERM/SIGABRT by default and

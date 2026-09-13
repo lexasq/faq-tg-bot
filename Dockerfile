@@ -19,4 +19,8 @@ ENV PYTHONUNBUFFERED=1
 # fails even though CMD's `python -m app.main` works fine either way.
 ENV PYTHONPATH=/app
 
+# Only serves a health-check endpoint for platforms (e.g. DigitalOcean App
+# Platform) that run an HTTP readiness probe regardless of workload type.
+EXPOSE 8080
+
 CMD ["python", "-m", "app.main"]
