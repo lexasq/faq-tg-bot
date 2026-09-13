@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import base64
+import os
 import subprocess
+import tempfile
 from datetime import time as dt_time
 
 from telegram import Update
@@ -30,6 +33,14 @@ def get_git_sha() -> str:
         )
     except Exception:
         return "unknown"
+
+
+def _write_credentials_from_base64(b64: str) -> str:
+    json_bytes = base64.b64decode(b64)
+    fd, path = tempfile.mkstemp(suffix=".json")
+    with os.fdopen(fd, "wb") as f:
+        f.write(json_bytes)
+    return path
 
 
 async def log_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -117,6 +128,9 @@ def build_application(settings: Settings, store: Store | None = None) -> Applica
 
 def main() -> None:
     settings = get_settings()
+    if settings.GOOGLE_SA_JSON_BASE64:
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _write_credentials_from_base64(settings.GOOGLE_SA_JSON_BASE64)
+
     configure_logging(settings.LOG_LEVEL, settings.ENV)
     logger.info("starting", env=settings.ENV, git_sha=get_git_sha())
 

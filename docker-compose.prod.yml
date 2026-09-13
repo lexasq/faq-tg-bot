@@ -6,7 +6,6 @@ services:
     env_file:
       - .env
     volumes:
-      - ./secrets:/run/secrets:ro
       - ./backups:/opt/faq-bot/backups
     healthcheck:
       # touch_liveness_file() (app/handlers/ops.py) writes this every 30s;

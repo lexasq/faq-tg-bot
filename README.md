@@ -53,7 +53,7 @@ JDK — check with `java -version`), the module just skips with a clear
 reason instead of failing the run.
 
 Run the bot against real Telegram/Firestore once `.env` and
-`GOOGLE_APPLICATION_CREDENTIALS` are set:
+`GOOGLE_SA_JSON_BASE64` are set:
 
 ```bash
 python -m app.main
@@ -67,9 +67,9 @@ python -m app.main
 docker compose up --build
 ```
 
-Mounts `./secrets` (the Firestore service-account JSON) read-only into the
-container at `/run/secrets`; point `GOOGLE_APPLICATION_CREDENTIALS` in `.env`
-at the mounted path.
+Credentials come from `GOOGLE_SA_JSON_BASE64` in `.env` (base64 of the
+Firestore service-account JSON); the bot decodes it to a temp file at
+startup and sets `GOOGLE_APPLICATION_CREDENTIALS` itself.
 
 ## Deploying to a DigitalOcean droplet
 
@@ -90,17 +90,18 @@ gcloud iam service-accounts keys create key.json \
   --iam-account=faq-bot@<PROJECT_ID>.iam.gserviceaccount.com
 ```
 
-On the droplet:
+Base64-encode the key and put it in `.env` as `GOOGLE_SA_JSON_BASE64`:
 
 ```bash
-mkdir -p /opt/faq-bot/secrets
-mv key.json /opt/faq-bot/secrets/firestore-sa.json
-chmod 600 /opt/faq-bot/secrets/firestore-sa.json
+base64 -w0 key.json   # Linux
 ```
 
-**Never commit this file** — `.gitignore` already excludes `secrets/`.
-Point `GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/firestore-sa.json` in `.env`
-(that's where `docker-compose.prod.yml` mounts `./secrets`).
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("key.json"))   # Windows
+```
+
+**Never commit the key or `.env`** — `.gitignore` already excludes both.
+Delete `key.json` once the value is in `.env`.
 
 ### 2. Deploy
 
