@@ -9,6 +9,7 @@ secrets/
 faq_export.md
 faq_export.csv
 backups/
+.claude/
 
 # Local working docs — may contain real personal/organizational data
 # (IBANs, phone numbers, emails) or are one-off planning/reference
